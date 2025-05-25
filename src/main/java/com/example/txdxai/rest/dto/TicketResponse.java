@@ -1,4 +1,17 @@
 package com.example.txdxai.rest.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TicketResponse {
+    private Long id;
+    private Long companyId;
+    private Long userId;
+    private String subject;
+    private String description;
+    private String status;
 }
