@@ -61,10 +61,15 @@
             <artifactId>spring-rabbit-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+            <version>3.5.8</version> <!-- Use the latest compatible version -->
+        </dependency>
         <!-- LangChain4j Spring Boot Starter para OpenAI, incluye AI Services -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
+            <artifactId>langchain4j-spring-boot-starter</artifactId>
             <version>1.0.1-beta6</version>
         </dependency>
         <dependency>

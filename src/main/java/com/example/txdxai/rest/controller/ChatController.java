@@ -1,10 +1,13 @@
 package com.example.txdxai.rest.controller;
 
 
+import com.example.txdxai.ai.agent.SophiaService;
 import com.example.txdxai.core.model.ChatMemoryEntry;
 import com.example.txdxai.core.service.ChatMemoryService;
 import com.example.txdxai.rest.dto.ChatRequest;
 import com.example.txdxai.rest.dto.ChatResponse;
+import dev.langchain4j.service.Result;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,35 +20,29 @@ import java.time.Instant;
 
 @RestController
 @RequestMapping("/api/chat")
-@RequiredArgsConstructor
 public class ChatController {
 
-    private final SophiaAgent sophiaAgent;
-    private final ChatMemoryService memoryService;
+    private final SophiaService sophiaService;
+    private final HttpServletRequest request;
+
+    public ChatController(SophiaService sophiaService, HttpServletRequest request) {
+        this.sophiaService = sophiaService;
+        this.request = request;
+    }
 
     @PostMapping
-    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request) {
-        // Guarda mensaje de usuario
-        ChatMemoryEntry userEntry = ChatMemoryEntry.builder()
-                .userId(request.getUserId())
-                .sender("USER")
-                .message(request.getMessage())
-                .timestamp(Instant.now())
-                .build();
-        memoryService.addEntry(userEntry);
-
-        // Lógica AI
-        String reply = sophiaAgent.query(request.getMessage(), request.getUserId());
-
-        // Guarda respuesta del agente
-        ChatMemoryEntry agentEntry = ChatMemoryEntry.builder()
-                .userId(request.getUserId())
-                .sender("AGENT")
-                .message(reply)
-                .timestamp(Instant.now())
-                .build();
-        memoryService.addEntry(agentEntry);
-
-        return ResponseEntity.ok(new ChatResponse(reply));
+    public ResponseEntity<String> chat(@RequestBody ChatRequest body) {
+        // Usa el nombre de usuario autenticado como conversationId
+        String conversationId = request.getUserPrincipal().getName();
+        // Llama al servicio AI y obtiene la respuesta con .content()
+        String response = sophiaService
+                .query(conversationId, body.getMessage())
+                .content();
+        return ResponseEntity.ok(response);
+    }
+    public static class ChatRequest {
+        private String message;
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
     }
 }

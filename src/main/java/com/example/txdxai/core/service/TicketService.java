@@ -46,4 +46,5 @@ public class TicketService {
     public void delete(Long id) {
         repo.deleteById(id);
     }
+
 }
