@@ -18,9 +18,6 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration-ms}")
-    private long jwtExpirationMs;
-
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRole().name());
@@ -29,7 +26,7 @@ public class JwtService {
                 .setClaims(claims)
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                //.setExpiration(null) <-- eliminada expiración
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -45,17 +42,7 @@ public class JwtService {
 
     public boolean isTokenValid(String token, User user) {
         final String username = extractUsername(token);
-        return username.equals(user.getUsername()) && !isTokenExpired(token);
-    }
-
-    private boolean isTokenExpired(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration()
-                .before(new Date());
+        return username.equals(user.getUsername());
     }
 
     private Key getSigningKey() {
