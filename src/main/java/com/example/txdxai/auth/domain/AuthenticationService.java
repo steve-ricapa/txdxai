@@ -15,6 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -26,8 +28,14 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public JwtAuthResponse register(RegisterRequest request) {
-        Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+        Company company = companyRepository
+                .findByName(request.getCompany().getName())
+                .orElseGet(() -> {
+                    Company newCompany = new Company();
+                    newCompany.setName(request.getCompany().getName());
+                    newCompany.setCreatedAt(LocalDateTime.now());
+                    return companyRepository.save(newCompany);
+                });
 
         User user = new User();
         user.setUsername(request.getUsername());

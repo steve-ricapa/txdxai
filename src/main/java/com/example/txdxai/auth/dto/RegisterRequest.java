@@ -7,5 +7,10 @@ public class RegisterRequest {
     private String username;
     private String email;
     private String password;
-    private Long companyId; // ID de la empresa a la que se asocia el usuario
+    private CompanyDto company;
+
+    @Data
+    public static class CompanyDto {
+        private String name;
+    }
 }
