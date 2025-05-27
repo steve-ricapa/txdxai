@@ -69,6 +69,12 @@
         <!-- LangChain4j Spring Boot Starter para OpenAI, incluye AI Services -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
+            <version>1.0.1-beta6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>
             <version>1.0.1-beta6</version>
         </dependency>
