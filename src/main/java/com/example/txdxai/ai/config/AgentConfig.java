@@ -9,11 +9,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AgentConfig {
 
-    /**
-     * Memoria conversacional: ventana deslizante de 20 mensajes por conversación.
-     */
+    // Memoria compartida para todos los usuarios
     @Bean
-    public ChatMemory chatMemory() {
-        return MessageWindowChatMemory.withMaxMessages(20);
+    public dev.langchain4j.memory.ChatMemory chatMemory() {
+        return dev.langchain4j.memory.chat.MessageWindowChatMemory.withMaxMessages(20);
+    }
+
+    // O bien, memoria por usuario: cada vez que aparezca un MemoryId nuevo
+    @Bean
+    public dev.langchain4j.memory.chat.ChatMemoryProvider chatMemoryProvider() {
+        return memoryId -> dev.langchain4j.memory.chat.MessageWindowChatMemory.withMaxMessages(20);
     }
 }

@@ -3,62 +3,73 @@ package com.example.txdxai.rest.controller;
 
 import com.example.txdxai.ai.agent.SophiaService;
 import com.example.txdxai.core.model.ChatMemoryEntry;
+import com.example.txdxai.core.model.Sender;
+import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.service.ChatMemoryService;
+import com.example.txdxai.core.service.UserService;
 import com.example.txdxai.rest.dto.ChatRequest;
 import com.example.txdxai.rest.dto.ChatResponse;
 import dev.langchain4j.service.Result;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 
 
 @RestController
 @RequestMapping("/api/chat")
+@RequiredArgsConstructor
 public class ChatController {
 
     private final SophiaService sophiaService;
-
-    public ChatController(SophiaService sophiaService) {
-        this.sophiaService = sophiaService;
-    }
-
+    private final ChatMemoryService chatMemoryService;
+    private final UserService userService;
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")  // sólo permite peticiones con un JWT válido
-    public ResponseEntity<String> chat(@RequestBody ChatRequest body) {
-        // Extraemos el usuario autenticado del JWT
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
-        }
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest body,
+                                             Authentication authentication) {
+        // 1) Obtengo el username del token
+        String username = authentication.getName();
 
-        String username = auth.getName();
-        if (username == null || username.isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuario no valido");
-        }
+        // 2) Busco al User por username
+        User user = userService.findByUsername(username)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario no encontrado")
+                );
 
-        String conversationId = username + "-conversation";  // ahora dinámico por usuario
+        String message = body.getMessage();
 
-        String response = sophiaService
-                .query(conversationId, body.getMessage())
-                .content();
+        // 3) Persiste entrada de usuario
+        ChatMemoryEntry userEntry = ChatMemoryEntry.builder()
+                .user(user)
+                .sender(Sender.USER)
+                .message(message)
+                .build();
+        chatMemoryService.addEntry(userEntry);
 
-        return ResponseEntity.ok(response);
-    }
+        // 4) Llamada a Sophia
+        String conversationId = username + "-conversation";
+        Result<String> result = sophiaService.query(conversationId, message);
+        String reply = result.content();
 
-    public static class ChatRequest {
-        private String message;
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
+        // 5) Persiste respuesta de Sophia
+        ChatMemoryEntry aiEntry = ChatMemoryEntry.builder()
+                .user(user)
+                .sender(Sender.AGENT)
+                .message(reply)
+                .build();
+        chatMemoryService.addEntry(aiEntry);
+
+        // 6) Devuelvo respuesta
+        return ResponseEntity.ok(new ChatResponse(reply));
     }
 }
