@@ -12,11 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+
 
 
 @Service
@@ -25,40 +22,51 @@ public class CredentialService {
 
     private final CredentialRepository credentialRepository;
     private final UserRepository       userRepository;
-    private final StringEncryptor encryptor;
+    private final StringEncryptor      encryptor;
 
     /**
      * Añade una nueva credencial a la compañía del Admin autenticado.
-     *
      * @param adminUsername nombre de usuario del Admin (debe existir y ser ROLE_ADMIN)
      * @param type          tipo de credencial (SPLUNK, MERAKI, WAZUH)
      * @param apiKeyPlain   clave API en texto claro
      * @return la entidad Credential guardada
      */
-
-
     @Transactional
     public Credential addCredential(String adminUsername,
                                     CredentialType type,
                                     String apiKeyPlain) {
-        // 1) Recuperar al Admin
         User admin = userRepository.findByUsername(adminUsername)
                 .orElseThrow(() -> new IllegalStateException("Admin no encontrado"));
-
-        // 2) Verificar rol
         if (admin.getRole() != Role.ADMIN) {
             throw new AccessDeniedException("Solo ADMIN puede añadir credenciales");
         }
-
-        // 3) Cifrar la API key
         String encryptedKey = encryptor.encrypt(apiKeyPlain);
-
-        // 4) Construir y guardar la credencial
         Credential credential = new Credential();
         credential.setType(type);
         credential.setApiKeyEncrypted(encryptedKey);
         credential.setCompany(admin.getCompany());
-
         return credentialRepository.save(credential);
+    }
+
+    /**
+     * Devuelve la API key original (descifrada) de una credencial existente,
+     * verificando que el llamador sea Admin de la misma compañía.
+     * @param adminUsername usuario que solicita la clave
+     * @param credentialId  id de la credencial
+     * @return la API key en texto claro
+     */
+    @Transactional
+    public String getApiKeyPlain(String adminUsername, Long credentialId) {
+        User admin = userRepository.findByUsername(adminUsername)
+                .orElseThrow(() -> new IllegalStateException("Admin no encontrado"));
+        if (admin.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Solo ADMIN puede acceder a las credenciales");
+        }
+        Credential credential = credentialRepository.findById(credentialId)
+                .orElseThrow(() -> new IllegalArgumentException("Credencial no existe"));
+        if (!credential.getCompany().getId().equals(admin.getCompany().getId())) {
+            throw new AccessDeniedException("No tienes permiso para esta credencial");
+        }
+        return encryptor.decrypt(credential.getApiKeyEncrypted());
     }
 }
