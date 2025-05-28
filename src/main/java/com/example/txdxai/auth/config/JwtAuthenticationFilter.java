@@ -1,17 +1,11 @@
 package com.example.txdxai.auth.config;
-
-import com.example.txdxai.core.model.User;
-import com.example.txdxai.core.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -21,7 +15,6 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -29,32 +22,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String username;
+        String path = request.getRequestURI();
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // Excluir rutas públicas
+        if (path.startsWith("/auth")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
-        username = jwtService.extractUsername(jwt);
+        String authHeader = request.getHeader("Authorization");
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            User user = userRepository.findByUsername(username)
-                    .orElse(null);
+        if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Falta o formato incorrecto del token");
+            return;
+        }
 
-            if (user != null && jwtService.isTokenValid(jwt, user)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        user,
-                        null,
-                        user.getAuthorities()
-                );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+        String token = authHeader.substring(7); // quitar "Bearer "
+        String userEmail = jwtService.extractUsername(token);
+
+        if (StringUtils.hasText(userEmail)) {
+            try {
+                jwtService.validateToken(token); // ← este método ya setea el contexto
+            } catch (RuntimeException e) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Token inválido o expirado");
+                return;
             }
         }
 

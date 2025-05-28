@@ -6,6 +6,7 @@ import com.example.txdxai.rest.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -20,6 +21,8 @@ public class UserController {
     private final UserService userService;
     private final ModelMapper modelMapper;
 
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @GetMapping
     public List<UserDto> list(
             @RequestParam(required = false) Long companyId) {

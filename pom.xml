@@ -73,6 +73,15 @@
             <version>1.0.1-beta6</version>
         </dependency>
 
+
+        <!-- Para implementar seguridad -->
+
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>4.4.0</version>
+        </dependency>
+
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>

@@ -1,51 +1,77 @@
 package com.example.txdxai.auth.config;
 
-import com.example.txdxai.core.model.User;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.example.txdxai.core.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
 
     @Value("${jwt.secret}")
-    private String jwtSecret;
+    private String secret;
 
-    public String generateToken(User user) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRole().name());
+    private final UserDetailsService userDetailsService;
 
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(user.getUsername())
-                .setIssuedAt(new Date())
-                //.setExpiration(null) <-- eliminada expiración
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
+    private final long EXPIRATION_MS = 1000 * 60 * 60 * 24; // 24 horas
+
+    public String generateToken(UserDetails userDetails) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + EXPIRATION_MS);
+
+        return JWT.create()
+                .withSubject(userDetails.getUsername())
+                .withClaim("role", userDetails.getAuthorities().iterator().next().getAuthority())
+                .withIssuedAt(now)
+                .withExpiresAt(expiration)
+                .sign(Algorithm.HMAC256(secret));
     }
 
     public String extractUsername(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return JWT.decode(token).getSubject();
     }
 
-    public boolean isTokenValid(String token, User user) {
-        final String username = extractUsername(token);
-        return username.equals(user.getUsername());
+    public void validateToken(String token) {
+        try {
+            // Verifica firma y expiración
+            JWT.require(Algorithm.HMAC256(secret)).build().verify(token);
+        } catch (JWTVerificationException e) {
+            throw new RuntimeException("Token inválido o expirado", e);
+        }
+
+        // Autenticación en contexto
+        String username = extractUsername(token);
+        UserDetails user = userDetailsService.loadUserByUsername(username);
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, token, user.getAuthorities());
+        context.setAuthentication(auth);
+        SecurityContextHolder.setContext(context);
     }
 
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        try {
+            String username = extractUsername(token);
+            return username.equals(userDetails.getUsername());
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
+
+/*
+
+
+
+ */

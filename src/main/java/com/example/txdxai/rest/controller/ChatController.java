@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,20 +32,23 @@ public class ChatController {
         this.sophiaService = sophiaService;
     }
 
-    @PostMapping
-    public ResponseEntity<String> chat(@RequestBody ChatRequest body) {
-        // 1. Obtén la autenticación del SecurityContext
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // 2. Si no hay usuario autenticado, devuelve 401
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No estás autenticado");
+    @PostMapping
+    @PreAuthorize("isAuthenticated()")  // sólo permite peticiones con un JWT válido
+    public ResponseEntity<String> chat(@RequestBody ChatRequest body) {
+        // Extraemos el usuario autenticado del JWT
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
         }
 
-        // 3. Usa el nombre del usuario como conversationId
-        String conversationId = authentication.getName();
+        String username = auth.getName();
+        if (username == null || username.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuario no valido");
+        }
 
-        // 4. Llama al AiService con un ID no-nulo
+        String conversationId = username + "-conversation";  // ahora dinámico por usuario
+
         String response = sophiaService
                 .query(conversationId, body.getMessage())
                 .content();
