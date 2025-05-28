@@ -5,4 +5,6 @@ public enum TicketStatus {
     EXECUTED,
     FAILED,
     DERIVED
+    //resuelto
+    //cancelado
 }

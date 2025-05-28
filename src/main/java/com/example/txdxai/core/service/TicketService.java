@@ -20,37 +20,37 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
 
-    public Ticket createNetworkTicket(String createdBy, String subject, String description) {
-        User user = userRepository.findByUsername(createdBy)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + createdBy));
-
-        if (!(user.getRole() == Role.ADMIN || user.getRole() == Role.USER)) {
-            throw new AccessDeniedException("No tienes permisos para crear tickets");
-        }
-
-        Ticket ticket = Ticket.builder()
-                .subject(subject)
-                .description(description)
-                .status(TicketStatus.PENDING)
-                .createdBy(user)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        return ticketRepository.save(ticket);
-    }
-
-    public Ticket getTicket(String username, Long ticketId) {
-        Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new IllegalArgumentException("Ticket no encontrado: " + ticketId));
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
-
-        if (user.getRole() == Role.USER && !ticket.getCreatedBy().getUsername().equals(username)) {
-            throw new AccessDeniedException("No tienes acceso a este ticket");
-        }
-        return ticket;
-    }
+//    public Ticket createNetworkTicket(String createdBy, String subject, String description) {
+//        User user = userRepository.findByUsername(createdBy)
+//                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + createdBy));
+//
+//        if (!(user.getRole() == Role.ADMIN || user.getRole() == Role.USER)) {
+//            throw new AccessDeniedException("No tienes permisos para crear tickets");
+//        }
+//
+//        Ticket ticket = Ticket.builder()
+//                .subject(subject)
+//                .description(description)
+//                .status(TicketStatus.PENDING)
+//                .createdBy(user)
+//                .createdAt(LocalDateTime.now())
+//                .build();
+//
+//        return ticketRepository.save(ticket);
+//    }
+//
+//    public Ticket getTicket(String username, Long ticketId) {
+//        Ticket ticket = ticketRepository.findById(ticketId)
+//                .orElseThrow(() -> new IllegalArgumentException("Ticket no encontrado: " + ticketId));
+//
+//        User user = userRepository.findByUsername(username)
+//                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+//
+//        if (user.getRole() == Role.USER && !ticket.getCreatedBy().getUsername().equals(username)) {
+//            throw new AccessDeniedException("No tienes acceso a este ticket");
+//        }
+//        return ticket;
+//    }
 
     public List<Ticket> findAll() {
         return ticketRepository.findAll();
