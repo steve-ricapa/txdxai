@@ -7,6 +7,7 @@ import com.example.txdxai.core.model.Sender;
 import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.service.ChatMemoryService;
 import com.example.txdxai.core.service.UserService;
+import com.example.txdxai.rest.dto.ChatMemoryEntryDto;
 import com.example.txdxai.rest.dto.ChatRequest;
 import com.example.txdxai.rest.dto.ChatResponse;
 import dev.langchain4j.service.Result;
@@ -15,13 +16,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.List;
 
 
 @RestController
@@ -71,5 +70,31 @@ public class ChatController {
 
         // 6) Devuelvo respuesta
         return ResponseEntity.ok(new ChatResponse(reply));
+    }
+
+    @GetMapping("/history")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<ChatMemoryEntryDto>> history(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userService.findByUsername(username)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                org.springframework.http.HttpStatus.BAD_REQUEST,
+                                "Usuario no encontrado"
+                        )
+                );
+
+        List<ChatMemoryEntryDto> dtos = chatMemoryService
+                .getRecent20ByUser(user)          // ya devuelve los últimos 20 en orden ascendente
+                .stream()
+                .map(e -> new ChatMemoryEntryDto(
+                        e.getId(),
+                        e.getMessage(),
+                        e.getSender().name(),
+                        e.getTimestamp()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(dtos);
     }
 }
