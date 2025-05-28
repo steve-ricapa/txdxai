@@ -5,6 +5,7 @@ import com.example.txdxai.core.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
@@ -38,7 +39,11 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        // REGLA ESPECÍFICA: solo ADMIN puede acceder al historial
+                        .requestMatchers(HttpMethod.GET, "/api/chat/history").hasRole("ADMIN")
+                        // resto de endpoints de usuarios
                         .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "USER")
+                        // cualquier otro requiere autenticación
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
