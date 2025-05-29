@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.data.message.AiMessage;
+import com.example.txdxai.core.model.User;
 
 import java.util.List;
 import java.util.Map;
@@ -39,18 +40,20 @@ public class MemoryConfig {
             String username = conversationId.replaceFirst("-conversation$", "");
 
             // 4) Carga todas las entradas previas de BD y las añade
-            userService.findByUsername(username).ifPresent(user -> {
-                List<ChatMemoryEntry> entries = chatMemoryService.getRecent20ByUser(user);
-                for (ChatMemoryEntry e : entries) {
-                    if (e.getSender() == Sender.USER) {
-                        memory.add(new UserMessage(e.getMessage()) );
-                    } else {
-                        memory.add(new AiMessage(e.getMessage()));
-                    }
-                }
-            });
+            userService.findOptionalByUsername(username)
+                    .ifPresent(user -> {
+                        List<ChatMemoryEntry> entries = chatMemoryService.getRecent20ByUser(user);
+                        for (ChatMemoryEntry e : entries) {
+                            if (e.getSender() == Sender.USER) {
+                                memory.add(new UserMessage(e.getMessage()));
+                            } else {
+                                memory.add(new AiMessage(e.getMessage()));
+                            }
+                        }
+                    });
 
             return memory;
         };
+
     }
 }

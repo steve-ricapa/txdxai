@@ -40,10 +40,7 @@ public class ChatController {
         String username = authentication.getName();
 
         // 2) Busco al User por username
-        User user = userService.findByUsername(username)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario no encontrado")
-                );
+        User user = userService.findByUsername(username);
 
         String message = body.getMessage();
 
@@ -76,13 +73,7 @@ public class ChatController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ChatMemoryEntryDto>> history(Authentication authentication) {
         String username = authentication.getName();
-        User user = userService.findByUsername(username)
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                org.springframework.http.HttpStatus.BAD_REQUEST,
-                                "Usuario no encontrado"
-                        )
-                );
+        User user = userService.findByUsername(username);
 
         List<ChatMemoryEntryDto> dtos = chatMemoryService
                 .getRecent20ByUser(user)          // ya devuelve los últimos 20 en orden ascendente

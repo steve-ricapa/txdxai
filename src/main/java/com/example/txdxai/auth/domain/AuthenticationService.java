@@ -10,6 +10,9 @@ import com.example.txdxai.core.model.Role;
 import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.repository.CompanyRepository;
 import com.example.txdxai.core.repository.UserRepository;
+import com.example.txdxai.rest.exception.ResourceNotFoundException;
+import com.example.txdxai.rest.exception.UnauthorizeOperationException;
+import com.example.txdxai.rest.exception.UserAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,7 +38,11 @@ public class AuthenticationService {
      * Registro inicial del primer Admin: crea la compañía y asigna ROLE_ADMIN
      */
     public JwtAuthResponse registerFirstAdmin(InitialRegisterRequest request) {
-        // Crear o reusar la compañía indicada
+        // 1) Verificar que no exista usuario con el mismo username
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new UserAlreadyExistsException("Username already taken: " + request.getUsername());
+        }
+        // 2) Crear o reusar la compañía indicada
         Company company = companyRepository
                 .findByName(request.getCompany().getName())
                 .orElseGet(() -> {
@@ -45,7 +52,7 @@ public class AuthenticationService {
                     return companyRepository.save(newCompany);
                 });
 
-        // Crear usuario Admin
+        // 3) Crear usuario Admin
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
@@ -54,7 +61,7 @@ public class AuthenticationService {
         user.setRole(Role.ADMIN);
         userRepository.save(user);
 
-        // Generar token JWT
+        // 4) Generar token JWT
         String token = jwtService.generateToken(user);
         JwtAuthResponse response = new JwtAuthResponse();
         response.setToken(token);
@@ -65,16 +72,17 @@ public class AuthenticationService {
      * Autenticación de usuario existente: LOGIN
      */
     public JwtAuthResponse login(LoginRequest request) {
+        // 1) Autenticar credenciales
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
                         request.getPassword()
                 )
         );
-
+        // 2) Recuperar usuario
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + request.getUsername()));
+        // 3) Generar token
         String token = jwtService.generateToken(user);
         JwtAuthResponse response = new JwtAuthResponse();
         response.setToken(token);
@@ -85,20 +93,24 @@ public class AuthenticationService {
      * Creación de un nuevo User por un Admin autenticado
      */
     public JwtAuthResponse createUserAsAdmin(CreateUserRequest request) {
-        // Verificar que el llamador sea un Admin
+        // 1) Verificar rol ADMIN
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getAuthorities().stream()
                 .noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            throw new AccessDeniedException("Solo ADMIN puede crear nuevos usuarios");
+            throw new UnauthorizeOperationException("Solo ADMIN puede crear nuevos usuarios");
+        }
+        String adminUsername = auth.getName();
+        // 2) Recuperar Admin
+        User admin = userRepository.findByUsername(adminUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin no encontrado: " + adminUsername));
+
+        // 3) Validar unicidad de username
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new UserAlreadyExistsException("Username already taken: " + request.getUsername());
         }
 
-        // Recuperar la compañía del Admin que realiza la petición
-        String adminUsername = auth.getName();
-        User admin = userRepository.findByUsername(adminUsername)
-                .orElseThrow(() -> new IllegalStateException("Admin no encontrado"));
+        // 4) Crear nuevo usuario con rol USER
         Company company = admin.getCompany();
-
-        // Crear nuevo usuario con rol USER
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
@@ -107,7 +119,7 @@ public class AuthenticationService {
         user.setRole(Role.USER);
         userRepository.save(user);
 
-        // Generar token JWT para el nuevo usuario
+        // 5) Generar token
         String token = jwtService.generateToken(user);
         JwtAuthResponse response = new JwtAuthResponse();
         response.setToken(token);

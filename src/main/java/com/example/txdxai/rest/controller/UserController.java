@@ -48,10 +48,9 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getById(@PathVariable Long id) {
-        return userService.findById(id)
-                .map(u -> modelMapper.map(u, UserDto.class))
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        // Ya lanza ResourceNotFoundException si no existe
+        User user = userService.findById(id);
+        return ResponseEntity.ok(modelMapper.map(user, UserDto.class));
     }
 
     @PutMapping("/{id}")
