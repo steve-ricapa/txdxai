@@ -61,21 +61,23 @@ public class ChatController {
             var company = user.getCompany();
             // Extrae credenciales asociadas a la compañía
             List<Credential> creds = company.getCredentials();
-            if (creds.isEmpty()) {
-                throw new IllegalStateException("No hay credenciales configuradas para la compañía: " + company.getName());
+
+            // **Solo si hay credenciales**, inyecta la lista de orgs
+            if (!creds.isEmpty()) {
+                Long credentialId = creds.get(0).getId();
+
+                // Llama al tool con conversationId y credenciales
+                List<Map<String, Object>> orgList = merakiService
+                        .listOrganizationsTool(conversationId, credentialId);
+
+                // Formatea la lista para el SystemMessage
+                String orgs = orgList.stream()
+                        .map(m -> m.get("name") + " (ID:" + m.get("id") + ")")
+                        .collect(Collectors.joining(", "));
+
+                memory.add(SystemMessage.from("Organizaciones de Meraki disponibles: " + orgs));
             }
-            Long credentialId = creds.get(0).getId();
-
-            // Llama al tool con memoryId y credenciales
-            List<Map<String, Object>> orgList = merakiService
-                    .listOrganizationsTool(conversationId, credentialId);
-
-            // Formatea la lista para el SystemMessage
-            String orgs = orgList.stream()
-                    .map(m -> m.get("name") + " (ID:" + m.get("id") + ")")
-                    .collect(Collectors.joining(", "));
-
-            memory.add(SystemMessage.from("Organizaciones de Meraki disponibles: " + orgs));
+            // Si no hay credenciales, no hacemos nada y la conversación sigue sin error
         }
 
         // 4) Persiste el mensaje del usuario en BD
@@ -107,7 +109,6 @@ public class ChatController {
 
         return ResponseEntity.ok(new ChatResponse(reply));
     }
-
 
     @GetMapping("/history")
     @PreAuthorize("isAuthenticated()")
