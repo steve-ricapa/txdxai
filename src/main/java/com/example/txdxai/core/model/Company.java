@@ -29,6 +29,9 @@ public class Company {
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Credential> credentials;
 
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Ticket> tickets;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

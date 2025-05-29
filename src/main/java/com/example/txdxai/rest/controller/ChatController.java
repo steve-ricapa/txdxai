@@ -2,7 +2,9 @@ package com.example.txdxai.rest.controller;
 
 
 import com.example.txdxai.ai.agent.SophiaService;
+import com.example.txdxai.ai.tool.MerakiService;
 import com.example.txdxai.core.model.ChatMemoryEntry;
+import com.example.txdxai.core.model.Credential;
 import com.example.txdxai.core.model.Sender;
 import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.service.ChatMemoryService;
@@ -10,6 +12,9 @@ import com.example.txdxai.core.service.UserService;
 import com.example.txdxai.rest.dto.ChatMemoryEntryDto;
 import com.example.txdxai.rest.dto.ChatRequest;
 import com.example.txdxai.rest.dto.ChatResponse;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +25,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -29,48 +37,77 @@ import java.util.List;
 public class ChatController {
 
     private final SophiaService sophiaService;
+    private final ChatMemoryProvider chatMemoryProvider;
+    private final MerakiService merakiService;
     private final ChatMemoryService chatMemoryService;
     private final UserService userService;
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest body,
-                                             Authentication authentication) {
-        // 1) Obtengo el username del token
-        String username = authentication.getName();
-
-        // 2) Busco al User por username
-        User user = userService.findByUsername(username)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario no encontrado")
-                );
-
-        String message = body.getMessage();
-
-        // 3) Persiste entrada de usuario
-        ChatMemoryEntry userEntry = ChatMemoryEntry.builder()
-                .user(user)
-                .sender(Sender.USER)
-                .message(message)
-                .build();
-        chatMemoryService.addEntry(userEntry);
-
-        // 4) Llamada a Sophia
+    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request,
+                                             Authentication auth) {
+        // 1) Identidad y sesión
+        String username       = auth.getName();
         String conversationId = username + "-conversation";
+
+        // 2) Carga o crea la memoria de esta sesión
+        ChatMemory memory = chatMemoryProvider.get(conversationId);
+
+        // 3) Inyecta las organizaciones de Meraki solo la primera vez
+        if (memory.messages().isEmpty()) {
+            // Obtén usuario y su compañía
+            User user = userService.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+            var company = user.getCompany();
+            // Extrae credenciales asociadas a la compañía
+            List<Credential> creds = company.getCredentials();
+            if (creds.isEmpty()) {
+                throw new IllegalStateException("No hay credenciales configuradas para la compañía: " + company.getName());
+            }
+            Long credentialId = creds.get(0).getId();
+
+            // Llama al tool con memoryId y credenciales
+            List<Map<String, Object>> orgList = merakiService
+                    .listOrganizationsTool(conversationId, credentialId);
+
+            // Formatea la lista para el SystemMessage
+            String orgs = orgList.stream()
+                    .map(m -> m.get("name") + " (ID:" + m.get("id") + ")")
+                    .collect(Collectors.joining(", "));
+
+            memory.add(SystemMessage.from("Organizaciones de Meraki disponibles: " + orgs));
+        }
+
+        // 4) Persiste el mensaje del usuario en BD
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+        String message = request.getMessage();
+        chatMemoryService.addEntry(
+                ChatMemoryEntry.builder()
+                        .user(user)
+                        .sender(Sender.USER)
+                        .message(message)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+
+        // 5) Llamada a Sophia con contexto y reglas de ticket
         Result<String> result = sophiaService.query(conversationId, message);
         String reply = result.content();
 
-        // 5) Persiste respuesta de Sophia
-        ChatMemoryEntry aiEntry = ChatMemoryEntry.builder()
-                .user(user)
-                .sender(Sender.AGENT)
-                .message(reply)
-                .build();
-        chatMemoryService.addEntry(aiEntry);
+        // 6) Persiste la respuesta del agente
+        chatMemoryService.addEntry(
+                ChatMemoryEntry.builder()
+                        .user(user)
+                        .sender(Sender.AGENT)
+                        .message(reply)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
 
-        // 6) Devuelvo respuesta
         return ResponseEntity.ok(new ChatResponse(reply));
     }
+
 
     @GetMapping("/history")
     @PreAuthorize("isAuthenticated()")
