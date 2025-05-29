@@ -1,15 +1,22 @@
 package com.example.txdxai.rest.controller;
 
 
+import com.example.txdxai.core.model.Company;
 import com.example.txdxai.core.model.Ticket;
 import com.example.txdxai.core.model.TicketStatus;
+import com.example.txdxai.core.model.User;
+import com.example.txdxai.core.service.CompanyService;
 import com.example.txdxai.core.service.TicketService;
+import com.example.txdxai.core.service.UserService;
 import com.example.txdxai.rest.dto.TicketRequest;
 import com.example.txdxai.rest.dto.TicketResponse;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+
 
 import java.net.URI;
 import java.util.List;
@@ -23,6 +30,9 @@ public class TicketController {
 
     private final TicketService ticketService;
     private final ModelMapper modelMapper;
+    private final CompanyService companyService;
+    private final UserService userService;
+
 
     @GetMapping
     public List<TicketResponse> list(
@@ -40,11 +50,31 @@ public class TicketController {
                 .toList();
     }
 
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<TicketResponse> create(@RequestBody TicketRequest dto) {
-        Ticket entity = modelMapper.map(dto, Ticket.class);
-        Ticket saved  = ticketService.create(entity);
+    public ResponseEntity<TicketResponse> create(
+            @RequestBody TicketRequest dto,
+            Authentication authentication) {
+
+        // 1) Saca el username del JWT
+        String username = authentication.getName();
+
+        // 2) Recupera el User y su Company
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+        Company company = user.getCompany();
+
+        // 3) Construye la entidad Ticket
+        Ticket entity = new Ticket();
+        entity.setSubject(dto.getSubject());
+        entity.setDescription(dto.getDescription());
+        entity.setUser(user);
+        entity.setCompany(company);
+
+        // 4) Guarda y transforma a DTO respuesta
+        Ticket saved = ticketService.create(entity);
         TicketResponse responseDto = modelMapper.map(saved, TicketResponse.class);
+
         return ResponseEntity
                 .created(URI.create("/api/tickets/" + saved.getId()))
                 .body(responseDto);
@@ -58,6 +88,7 @@ public class TicketController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<TicketResponse> updateStatus(
             @PathVariable Long id,
