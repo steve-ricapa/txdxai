@@ -14,4 +14,13 @@ public class TicketResponse {
     private String subject;
     private String description;
     private String status;
+
+    public TicketResponse(Long id, String subject, String status) {
+        this.id = id;
+        this.companyId = companyId;
+        this.userId = userId;
+        this.subject = subject;
+        this.description = description;
+        this.status = status;
+    }
 }
