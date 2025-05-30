@@ -2,6 +2,7 @@ package com.example.txdxai.ai.config;
 
 import com.example.txdxai.core.model.ChatMemoryEntry;
 import com.example.txdxai.core.model.Sender;
+import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.service.ChatMemoryService;
 import com.example.txdxai.core.service.UserService;
 import dev.langchain4j.memory.ChatMemory;
@@ -38,17 +39,18 @@ public class MemoryConfig {
             // 3) Extrae el username (quitando el sufijo "-conversation")
             String username = conversationId.replaceFirst("-conversation$", "");
 
-            // 4) Carga todas las entradas previas de BD y las añade
-            userService.findByUsername(username).ifPresent(user -> {
-                List<ChatMemoryEntry> entries = chatMemoryService.getRecent20ByUser(user);
-                for (ChatMemoryEntry e : entries) {
-                    if (e.getSender() == Sender.USER) {
-                        memory.add(new UserMessage(e.getMessage()) );
-                    } else {
-                        memory.add(new AiMessage(e.getMessage()));
-                    }
+            // 3) Recupera el User (lanza excepción si no existe)
+            User user = userService.findByUsername(username);
+
+            // 4) Carga las últimas 20 entradas directamente
+            List<ChatMemoryEntry> recentEntries = chatMemoryService.getRecent20ByUser(user);
+            for (ChatMemoryEntry e : recentEntries) {
+                if (e.getSender() == Sender.USER) {
+                    memory.add(new UserMessage(e.getMessage()));
+                } else {
+                    memory.add(new AiMessage(e.getMessage()));
                 }
-            });
+            }
 
             return memory;
         };

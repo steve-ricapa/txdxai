@@ -10,6 +10,9 @@ import com.example.txdxai.core.model.Role;
 import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.repository.CompanyRepository;
 import com.example.txdxai.core.repository.UserRepository;
+import com.example.txdxai.rest.exception.ResourceNotFoundException;
+import com.example.txdxai.rest.exception.UnauthorizeOperationException;
+import com.example.txdxai.rest.exception.UserAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -73,7 +76,7 @@ public class AuthenticationService {
         );
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .   orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         String token = jwtService.generateToken(user);
         JwtAuthResponse response = new JwtAuthResponse();
@@ -89,17 +92,23 @@ public class AuthenticationService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getAuthorities().stream()
                 .noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            throw new AccessDeniedException("Solo ADMIN puede crear nuevos usuarios");
+            throw new UnauthorizeOperationException("Solo ADMIN puede crear nuevos usuarios");
         }
+
 
         // Recuperar la compañía del Admin que realiza la petición
         String adminUsername = auth.getName();
         User admin = userRepository.findByUsername(adminUsername)
-                .orElseThrow(() -> new IllegalStateException("Admin no encontrado"));
-        Company company = admin.getCompany();
+                .orElseThrow(() -> new ResourceNotFoundException("Admin no encontrado: " + adminUsername));
+
+        // 3) Validar unicidad de username
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new UserAlreadyExistsException("Username already taken: " + request.getUsername());
+        }
 
         // Crear nuevo usuario con rol USER
         User user = new User();
+        Company company = admin.getCompany(); // Usar la misma compañía del Admin
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setCompany(company);

@@ -4,19 +4,15 @@ package com.example.txdxai.ai.tool;
 import com.example.txdxai.core.model.Company;
 import com.example.txdxai.core.model.Ticket;
 import com.example.txdxai.core.model.User;
-import com.example.txdxai.core.service.CompanyService;
 import com.example.txdxai.core.service.TicketService;
 import com.example.txdxai.core.service.UserService;
 import com.example.txdxai.rest.dto.TicketRequest;
 import com.example.txdxai.rest.dto.TicketResponse;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
-import dev.langchain4j.agent.tool.ToolMemoryId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,8 +37,7 @@ public class TicketTool {
         // Obtener usuario autenticado
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+        User user = userService.findByUsername(username);
 
         // Obtener compañía del usuario
         Company company = user.getCompany();
@@ -81,8 +76,7 @@ public class TicketTool {
             value = "Obtiene un ticket dado su ID"
     )
     public TicketResponse getTicketById(@P("ID del ticket") Long id) {
-        Ticket ticket = ticketService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Ticket no encontrado: " + id));
+        Ticket ticket = ticketService.findById(id);
         return toDto(ticket);
     }
 

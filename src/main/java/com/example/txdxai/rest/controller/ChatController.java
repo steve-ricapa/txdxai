@@ -14,14 +14,10 @@ import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +49,7 @@ public class ChatController {
         // 3) Inyecta las organizaciones de Meraki solo la primera vez
         if (memory.messages().isEmpty()) {
             // --- aquí reemplaza la lógica antigua por la nueva ---
-            User user = userService.findByUsername(username)
-                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+            User user = userService.findByUsername(username);
             var company    = user.getCompany();
             var merakiCred = company.getCredentials().stream()
                     .filter(c -> c.getType() == CredentialType.MERAKI)
@@ -80,8 +75,7 @@ public class ChatController {
         }
 
         // 4) Persiste el mensaje del usuario en BD
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+        User user = userService.findByUsername(username);
         String message = request.getMessage();
         chatMemoryService.addEntry(
                 ChatMemoryEntry.builder()
@@ -113,13 +107,7 @@ public class ChatController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ChatMemoryEntryDto>> history(Authentication authentication) {
         String username = authentication.getName();
-        User user = userService.findByUsername(username)
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                org.springframework.http.HttpStatus.BAD_REQUEST,
-                                "Usuario no encontrado"
-                        )
-                );
+        User user = userService.findByUsername(username);
 
         List<ChatMemoryEntryDto> dtos = chatMemoryService
                 .getRecent20ByUser(user)          // ya devuelve los últimos 20 en orden ascendente
