@@ -42,7 +42,7 @@ public class ChatController {
         // 2) Busco al User por username
         User user = userService.findByUsername(username);
 
-        String message = body.getMessage();
+        String message = body.getMessage(); 
 
         // 3) Persiste entrada de usuario
         ChatMemoryEntry userEntry = ChatMemoryEntry.builder()
