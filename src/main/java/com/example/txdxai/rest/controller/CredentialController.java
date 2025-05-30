@@ -4,6 +4,7 @@ import com.example.txdxai.core.model.Credential;
 import com.example.txdxai.core.service.CredentialService;
 import com.example.txdxai.rest.dto.CreateCredentialRequest;
 import com.example.txdxai.rest.dto.CredentialDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,27 +15,22 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/credentials")
+@PreAuthorize("hasRole('ADMIN')")    // <— se aplica a todos los métodos
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@Validated
 public class CredentialController {
 
     private final CredentialService credentialService;
 
     @PostMapping
     public ResponseEntity<CredentialDto> addCredential(
-            @Validated @RequestBody CreateCredentialRequest req,
+            @Valid @RequestBody CreateCredentialRequest req,
             Authentication auth
     ) {
         String adminUsername = auth.getName();
-        Credential created = credentialService.addCredential(
-                adminUsername,
-                req.getType(),
-                req.getApiKey()
-        );
+        Credential created = credentialService.addCredential(adminUsername, req);
 
-        CredentialDto dto = new CredentialDto();
-        dto.setId(created.getId());
-        dto.setType(created.getType());
+        CredentialDto dto = new CredentialDto(created.getId(), created.getType());
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 }

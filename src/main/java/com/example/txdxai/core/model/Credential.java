@@ -18,10 +18,25 @@ public class Credential {
     @Enumerated(EnumType.STRING)
     private CredentialType type; // SPLUNK, MERAKI, WAZUH
 
-    @Column(name = "api_key_encrypted", nullable = false)
+    @Column(name = "api_key_encrypted", nullable = true)
     private String apiKeyEncrypted;
 
-    @ManyToOne
+    @Column(name = "manager_ip", nullable = true)
+    private String MANAGER_IP;
+
+    @Column(name = "api_port", nullable = true)
+    private String API_PORT;
+
+    @Column(name = "api_user", nullable = true)
+    private String API_USER;
+
+    @Column(name = "api_password_encrypted", nullable = true)
+    private String API_PASSWORD_ENCRYPTED;
+
+
+
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 }

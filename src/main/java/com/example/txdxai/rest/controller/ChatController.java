@@ -3,10 +3,7 @@ package com.example.txdxai.rest.controller;
 
 import com.example.txdxai.ai.agent.SophiaService;
 import com.example.txdxai.ai.tool.MerakiService;
-import com.example.txdxai.core.model.ChatMemoryEntry;
-import com.example.txdxai.core.model.Credential;
-import com.example.txdxai.core.model.Sender;
-import com.example.txdxai.core.model.User;
+import com.example.txdxai.core.model.*;
 import com.example.txdxai.core.service.ChatMemoryService;
 import com.example.txdxai.core.service.UserService;
 import com.example.txdxai.rest.dto.ChatMemoryEntryDto;
@@ -55,29 +52,31 @@ public class ChatController {
 
         // 3) Inyecta las organizaciones de Meraki solo la primera vez
         if (memory.messages().isEmpty()) {
-            // Obtén usuario y su compañía
+            // --- aquí reemplaza la lógica antigua por la nueva ---
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
-            var company = user.getCompany();
-            // Extrae credenciales asociadas a la compañía
-            List<Credential> creds = company.getCredentials();
+            var company    = user.getCompany();
+            var merakiCred = company.getCredentials().stream()
+                    .filter(c -> c.getType() == CredentialType.MERAKI)
+                    .findFirst();
 
-            // **Solo si hay credenciales**, inyecta la lista de orgs
-            if (!creds.isEmpty()) {
-                Long credentialId = creds.get(0).getId();
+            if (merakiCred.isPresent()) {
+                Long merakiCredId = merakiCred.get().getId();
+                try {
+                    List<Map<String, Object>> orgList = merakiService
+                            .listOrganizationsTool(conversationId, merakiCredId);
 
-                // Llama al tool con conversationId y credenciales
-                List<Map<String, Object>> orgList = merakiService
-                        .listOrganizationsTool(conversationId, credentialId);
+                    String orgs = orgList.stream()
+                            .map(o -> o.get("name") + " (ID:" + o.get("id") + ")")
+                            .collect(Collectors.joining(", "));
 
-                // Formatea la lista para el SystemMessage
-                String orgs = orgList.stream()
-                        .map(m -> m.get("name") + " (ID:" + m.get("id") + ")")
-                        .collect(Collectors.joining(", "));
-
-                memory.add(SystemMessage.from("Organizaciones de Meraki disponibles: " + orgs));
+                    memory.add(SystemMessage.from("Organizaciones de Meraki disponibles: " + orgs));
+                } catch (Exception e) {
+                    // Si falla la inyección de Meraki, lo logueamos pero no abortamos
+                    System.err.println("Error al inyectar orgs de Meraki: " + e.getMessage());
+                }
             }
-            // Si no hay credenciales, no hacemos nada y la conversación sigue sin error
+            // si no hay creds MERAKI, se salta sin lanzar error
         }
 
         // 4) Persiste el mensaje del usuario en BD

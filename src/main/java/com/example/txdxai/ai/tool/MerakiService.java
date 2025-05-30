@@ -42,8 +42,7 @@ public class MerakiService {
         ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, entity, responseType);
         return response.getBody();
     }
-
-    @Tool("List all Meraki organizations")
+    @Tool("List_all_Meraki_organizations")
     public List<Map<String, Object>> listOrganizationsTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId) {
@@ -52,7 +51,7 @@ public class MerakiService {
         return get(url, headers(user, credentialId), List.class);
     }
 
-    @Tool("List networks in a Meraki organization")
+    @Tool("List_networks_in_a_Meraki_organization")
     public List<Map<String, Object>> listNetworksTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId,
@@ -62,7 +61,7 @@ public class MerakiService {
         return get(url, headers(user, credentialId), List.class);
     }
 
-    @Tool("List devices in a Meraki network")
+    @Tool("List_devices_in_a_Meraki_network")
     public List<Map<String, Object>> listDevicesTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId,
@@ -72,7 +71,7 @@ public class MerakiService {
         return get(url, headers(user, credentialId), List.class);
     }
 
-    @Tool("List clients in a Meraki network")
+    @Tool("List_clients_in_a_Meraki_network")
     public List<Map<String, Object>> listClientsTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId,
@@ -82,7 +81,7 @@ public class MerakiService {
         return get(url, headers(user, credentialId), List.class);
     }
 
-    @Tool("Get Meraki subscription end date for an organization")
+    @Tool("Get_Meraki_subscription_end_date_for_an_organization")
     public Map<String, Object> getSubscriptionEndDateTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId,
@@ -95,7 +94,7 @@ public class MerakiService {
         return result;
     }
 
-    @Tool("Get Meraki network status summary")
+    @Tool("Get_Meraki_network_status_summary")
     public Map<String, Object> getNetworkStatusTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId,
@@ -108,7 +107,7 @@ public class MerakiService {
         return report;
     }
 
-    @Tool("List firewall rules in a Meraki network")
+    @Tool("List_firewall_rules_in_a_Meraki_network")
     public Map<String, Object> listFirewallRulesTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId,
@@ -118,7 +117,7 @@ public class MerakiService {
         return get(url, headers(user, credentialId), Map.class);
     }
 
-    @Tool("List wireless channel utilization in a Meraki network")
+    @Tool("List_wireless_channel_utilization_in_a_Meraki_network")
     public List<Map<String, Object>> listWirelessChannelsTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId,
@@ -128,7 +127,7 @@ public class MerakiService {
         return get(url, headers(user, credentialId), List.class);
     }
 
-    @Tool("List VLANs in a Meraki network")
+    @Tool("List_VLANs_in_a_Meraki_network")
     public List<Map<String, Object>> listVlansTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId,
@@ -138,7 +137,7 @@ public class MerakiService {
         return get(url, headers(user, credentialId), List.class);
     }
 
-    @Tool("List saturated switch ports in a Meraki network")
+    @Tool("List_saturated_switch_ports_in_a_Meraki_network")
     public List<Map<String, Object>> listSaturatedPortsTool(
             @ToolMemoryId String conversationId,
             @P("credential id") Long credentialId,

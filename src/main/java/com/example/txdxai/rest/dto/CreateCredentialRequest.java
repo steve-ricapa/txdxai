@@ -11,6 +11,13 @@ public class CreateCredentialRequest {
     @NotNull
     private CredentialType type;    // SPLUNK, MERAKI o WAZUH
 
-    @NotBlank
-    private String apiKey;          // la clave en texto claro
+
+    /** Para MERAKI */
+    private String apiKey;
+
+    /** Para WAZUH y SPLUNK */
+    private String managerIp;
+    private String apiPort;
+    private String apiUser;
+    private String apiPassword;
 }
