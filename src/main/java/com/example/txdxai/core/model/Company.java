@@ -36,4 +36,8 @@ public class Company {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+    public Company(Long id) {
+        this.id = id;
+    }
 }
