@@ -60,8 +60,7 @@ public class TicketController {
         String username = authentication.getName();
 
         // 2) Recupera el User y su Company
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+        User user = userService.findByUsername(username);
         Company company = user.getCompany();
 
         // 3) Construye la entidad Ticket
@@ -82,10 +81,11 @@ public class TicketController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TicketResponse> getById(@PathVariable Long id) {
-        return ticketService.findById(id)
-                .map(t -> modelMapper.map(t, TicketResponse.class))
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        // findById lanza ResourceNotFoundException si no existe
+        Ticket ticket = ticketService.findById(id);
+        TicketResponse dto = modelMapper.map(ticket, TicketResponse.class);
+        return ResponseEntity.ok(dto);
+
     }
 
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")

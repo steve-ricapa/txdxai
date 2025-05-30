@@ -8,13 +8,14 @@ import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.repository.CredentialRepository;
 import com.example.txdxai.core.repository.UserRepository;
 import com.example.txdxai.rest.dto.CreateCredentialRequest;
+import com.example.txdxai.rest.exception.ResourceConflictException;
+import com.example.txdxai.rest.exception.ResourceNotFoundException;
+import com.example.txdxai.rest.exception.UnauthorizeOperationException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.jasypt.encryption.StringEncryptor;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
+
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 
 @Service
@@ -34,19 +35,18 @@ public class CredentialService {
         // 1) Verifica Admin
         User admin = userRepository.findByUsername(adminUsername)
                 .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "Admin no encontrado")
+                        new ResourceNotFoundException("Admin no encontrado: " + adminUsername)
                 );
 
         if (admin.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("Solo ADMIN puede añadir credenciales");
+            throw new UnauthorizeOperationException("Solo ADMIN puede añadir credenciales");
         }
 
         // 2) Validación por tipo
         switch (req.getType()) {
             case MERAKI -> {
                 if (req.getApiKey() == null || req.getApiKey().isBlank()) {
-                    throw new ResponseStatusException(
-                            HttpStatus.BAD_REQUEST,
+                    throw new ResourceConflictException(
                             "Para MERAKI debes proporcionar apiKey"
                     );
                 }
@@ -56,15 +56,13 @@ public class CredentialService {
                         || req.getApiPort() == null
                         || req.getApiUser() == null
                         || req.getApiPassword() == null) {
-                    throw new ResponseStatusException(
-                            HttpStatus.BAD_REQUEST,
+                    throw new ResourceConflictException(
                             "Para " + req.getType() +
                                     " debes proporcionar managerIp, apiPort, apiUser y apiPassword"
                     );
                 }
             }
-            default -> throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            default -> throw new ResourceConflictException(
                     "Tipo desconocido: " + req.getType()
             );
         }
@@ -98,16 +96,21 @@ public class CredentialService {
     @Transactional
     public String getApiKeyPlain(String adminUsername, Long credentialId) {
         User admin = userRepository.findByUsername(adminUsername)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Admin no encontrado"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Admin no encontrado: " + adminUsername)
+                );
+
         if (admin.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("Solo ADMIN puede acceder a las credenciales");
+            throw new UnauthorizeOperationException("Solo ADMIN puede acceder a las credenciales");
         }
 
         Credential credential = credentialRepository.findById(credentialId)
-                .orElseThrow(() -> new IllegalArgumentException("Credencial no existe"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Credencial no encontrada: " + credentialId)
+                );
+
         if (!credential.getCompany().getId().equals(admin.getCompany().getId())) {
-            throw new AccessDeniedException("No tienes permiso para esta credencial");
+            throw new UnauthorizeOperationException("No tienes permiso para esta credencial");
         }
 
         return encryptor.decrypt(credential.getApiKeyEncrypted());
@@ -123,16 +126,21 @@ public class CredentialService {
     @Transactional
     public String getManagerIpPlain(String adminUsername, Long credentialId) {
         User admin = userRepository.findByUsername(adminUsername)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Admin no encontrado"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Admin no encontrado: " + adminUsername)
+                );
+
         if (admin.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("Solo ADMIN puede acceder a las credenciales");
+            throw new UnauthorizeOperationException("Solo ADMIN puede acceder a las credenciales");
         }
 
         Credential credential = credentialRepository.findById(credentialId)
-                .orElseThrow(() -> new IllegalArgumentException("Credencial no existe"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Credencial no encontrada: " + credentialId)
+                );
+
         if (!credential.getCompany().getId().equals(admin.getCompany().getId())) {
-            throw new AccessDeniedException("No tienes permiso para esta credencial");
+            throw new UnauthorizeOperationException("No tienes permiso para esta credencial");
         }
 
         return encryptor.decrypt(credential.getMANAGER_IP());
@@ -148,16 +156,21 @@ public class CredentialService {
     @Transactional
     public String getApiPortPlain(String adminUsername, Long credentialId) {
         User admin = userRepository.findByUsername(adminUsername)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Admin no encontrado"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Admin no encontrado: " + adminUsername)
+                );
+
         if (admin.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("Solo ADMIN puede acceder a las credenciales");
+            throw new UnauthorizeOperationException("Solo ADMIN puede acceder a las credenciales");
         }
 
         Credential credential = credentialRepository.findById(credentialId)
-                .orElseThrow(() -> new IllegalArgumentException("Credencial no existe"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Credencial no encontrada: " + credentialId)
+                );
+
         if (!credential.getCompany().getId().equals(admin.getCompany().getId())) {
-            throw new AccessDeniedException("No tienes permiso para esta credencial");
+            throw new UnauthorizeOperationException("No tienes permiso para esta credencial");
         }
 
         return encryptor.decrypt(credential.getAPI_PORT());
@@ -173,16 +186,21 @@ public class CredentialService {
     @Transactional
     public String getApiUserPlain(String adminUsername, Long credentialId) {
         User admin = userRepository.findByUsername(adminUsername)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Admin no encontrado"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Admin no encontrado: " + adminUsername)
+                );
+
         if (admin.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("Solo ADMIN puede acceder a las credenciales");
+            throw new UnauthorizeOperationException("Solo ADMIN puede acceder a las credenciales");
         }
 
         Credential credential = credentialRepository.findById(credentialId)
-                .orElseThrow(() -> new IllegalArgumentException("Credencial no existe"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Credencial no encontrada: " + credentialId)
+                );
+
         if (!credential.getCompany().getId().equals(admin.getCompany().getId())) {
-            throw new AccessDeniedException("No tienes permiso para esta credencial");
+            throw new UnauthorizeOperationException("No tienes permiso para esta credencial");
         }
 
         return encryptor.decrypt(credential.getAPI_USER());
@@ -198,16 +216,21 @@ public class CredentialService {
     @Transactional
     public String getApiPasswordPlain(String adminUsername, Long credentialId) {
         User admin = userRepository.findByUsername(adminUsername)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Admin no encontrado"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Admin no encontrado: " + adminUsername)
+                );
+
         if (admin.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("Solo ADMIN puede acceder a las credenciales");
+            throw new UnauthorizeOperationException("Solo ADMIN puede acceder a las credenciales");
         }
 
         Credential credential = credentialRepository.findById(credentialId)
-                .orElseThrow(() -> new IllegalArgumentException("Credencial no existe"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Credencial no encontrada: " + credentialId)
+                );
+
         if (!credential.getCompany().getId().equals(admin.getCompany().getId())) {
-            throw new AccessDeniedException("No tienes permiso para esta credencial");
+            throw new UnauthorizeOperationException("No tienes permiso para esta credencial");
         }
 
         return encryptor.decrypt(credential.getAPI_PASSWORD_ENCRYPTED());

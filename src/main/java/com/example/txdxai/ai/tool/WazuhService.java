@@ -1,10 +1,10 @@
 package com.example.txdxai.ai.tool;
 
 import com.example.txdxai.core.service.CredentialService;
+import com.example.txdxai.rest.exception.ResourceConflictException;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
-import jakarta.annotation.PostConstruct;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -42,7 +42,7 @@ public class WazuhService {
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
             HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to disable SSL verification", e);
+            throw new ResourceConflictException("No se pudo desactivar verificación SSL: " + e.getMessage());
         }
     }
 
@@ -110,8 +110,7 @@ public class WazuhService {
         System.out.println("🚀 Wazuh GET /agents Body:   " + resp.getBody());
 
         if (resp.getStatusCode() != HttpStatus.OK) {
-            throw new IllegalStateException("Error al obtener agentes de Wazuh: "
-                    + resp.getStatusCode());
+            throw new ResourceConflictException("Error al obtener agentes de Wazuh: " + resp.getStatusCode());
         }
 
         // 5) Parseo correcto de "affected_items"

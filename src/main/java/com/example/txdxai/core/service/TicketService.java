@@ -7,6 +7,7 @@ import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.repository.TicketRepository;
 import com.example.txdxai.core.repository.UserRepository;
 import com.example.txdxai.email.event.EmailEvent;
+import com.example.txdxai.rest.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -31,7 +32,9 @@ public class TicketService {
     @Transactional
     public Ticket updateStatus(Long id, TicketStatus status) {
         Ticket t = ticketRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Ticket no encontrado: " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Ticket no encontrado: " + id)
+                );
         t.setStatus(status);
         Ticket updated = ticketRepository.save(t);
 
@@ -63,16 +66,21 @@ public class TicketService {
         return ticketRepository.findByUserId(userId);
     }
 
-    public Optional<Ticket> findById(Long id) {
-        return ticketRepository.findById(id);
+    public Ticket findById(Long id) {
+        return ticketRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Ticket no encontrado: " + id)
+                );
     }
 
     public Ticket create(Ticket ticket) {
         return ticketRepository.save(ticket);
     }
 
-
     public void delete(Long id) {
+        if (!ticketRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Ticket no encontrado: " + id);
+        }
         ticketRepository.deleteById(id);
     }
 }
