@@ -158,7 +158,7 @@ El proyecto utiliza GitHub con flujo GitFlow:
 - Se integró un asistente conversacional con historial persistido.  
 - Se implementaron notificaciones asíncronas para eventos críticos.  
 - El manejo de errores y la seguridad cumplen con buenas prácticas en aplicaciones críticas.
-- A futuro se plantea implementar un segundo agente que ejecute accionesa partir de los tickets creados por sophia, tendra un conjunto de tools al igual que SOPHIA para poder ejecutar acciones automatizadas que resuelvan el ticket, si es que se clasifica el ticket como algo fuera de las capacidades del agente, el ticket se deriva recien al personal de TI para que lo resuelvan y vean a detalle, es ahi cuando se les notifica via correo(ya implementado).
+- A futuro se plantea implementar un segundo agente que ejecute accionesa partir de los tickets creados por sophia, tendra un conjunto de tools al igual que SOPHIA para poder ejecutar acciones automatizadas que resuelvan el ticket, si es que se clasifica el ticket como algo fuera de las capacidades del agente, el ticket se deriva recien al personal de TI para que lo resuelvan y vean a detalle, es ahi cuando se les notifica via correo(funcion ya implementado).
 - Esto automatiza un poco mas la labor de soporte IT aligerando su carga debido a que un gran porcentaje de los tickets que se suelen generar en las empresas son de  provisioning.
 
 ---
