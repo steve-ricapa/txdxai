@@ -8,7 +8,7 @@
 | Name                                  | GitHub User                                                           | Email                                                         |
 |---------------------------------------|-----------------------------------------------------------------------|---------------------------------------------------------------|
 | Mario Angel Urpay Enriquez              | [Chumayito](https://github.com/Ronal-Jesus-Condor-Blas) | [ronal.condor@utec.edu.pe](mailto:ronal.condor@utec.edu.pe)   |
-| Steve... | [Isaac181222](https://github.com/Isaac181222)                         | [isaac.simeon@utec.edu.pe](mailto:isaac.simeon@utec.edu.pe)   |
+| Steve | [steve-ricapa](https://github.com/steve-ricapa)                         | [steve.ricapa@utec.edu.pe](mailto:steve.ricapa@utec.edu.pe)   |
 | Adrian       | [LuissBarahona](https://github.com/LuissBarahona)                     | [luis.barahona@utec.edu.pe](mailto:luis.barahona@utec.edu.pe) |
 | Diego       | [LuissBarahona](https://github.com/LuissBarahona)                     | [luis.barahona@utec.edu.pe](mailto:luis.barahona@utec.edu.pe) |
 
