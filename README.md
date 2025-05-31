@@ -53,7 +53,10 @@ Las organizaciones suelen tener:
 - Múltiples sistemas de monitoreo aislados.
 - Flujos de ticketing manuales y poco trazables.
 - Gestión dispersa de credenciales, con riesgos de seguridad.
-- Falta de registro histórico de chats con asistentes.
+- Poco uso de las bondades de comunicacion via API con las plataformas de seguridad.
+- Complejidad de entendimiento y curva de aprendizaje para consultar datos sobre la seguridad
+- Falta de privacidad para consultas de seguridad con data real(falta de un chatbot privado).
+- Falta de automatizacion de ejecucion de Tickets que involucren provissioning lo que sobrecarga al equipo de TI.
 
 Esto genera ineficiencias, demoras en la atención y potenciales brechas de seguridad.
 
