@@ -98,6 +98,38 @@ Esto genera ineficiencias, demoras en la atención y potenciales brechas de segu
 
 ---
 
+### Tecnologías Utilizadas
+
+   - Lenguaje y Plataforma
+
+   - Java 17, Spring Boot 3.x
+
+   - Dependencias Principales
+
+   - langchain4j-open-ai-spring-boot-starter (v1.0.1-beta6): integración con OpenAI GPT-4.
+
+   - Jasypt: cifrado de credenciales sensibles (AES-256).
+
+   - Spring Security: autenticación y autorización con JWT.
+
+   - Hibernate Validator: validaciones (@NotNull, @Email, etc.).
+
+   - Spring Data JPA: ORM y repositorios para PostgreSQL.
+
+   - JavaMailSender: envío asíncrono de correos.
+
+   - Base de Datos
+
+   - PostgreSQL 14
+
+   - Herramientas de Testing
+
+   - JUnit 5, Mockito, Testcontainers (PostgreSQL).
+
+   - Construcción y Gestión de Dependencias
+
+   - Maven 3.x
+
 ## Modelo de Entidades
 
 ![Imagen de WhatsApp 2025-05-30 a las 16 31 29_7d36f2de](https://github.com/user-attachments/assets/06b709e1-6631-45fd-b89e-2644a3013617)
@@ -170,6 +202,243 @@ El proyecto utiliza GitHub con flujo GitFlow:
 ![Imagen de WhatsApp 2025-05-30 a las 23 44 04_439995fe](https://github.com/user-attachments/assets/3c535d92-15c7-41f0-af6d-2caab227fcbb)
 - La solucion de Meaki a la que le hacemos consultas coorresponde a una empresa llamada BVS (con oficina en San Isidro (en la que estan los equipos Cisco)) que nos cedio su ApiKey para hacer las pruebas del caso, manejar con precaución.
 
+[TXDXAI.postman_collection.json](https://github.com/user-attachments/files/20531390/TXDXAI.postman_collection.json){
+	"info": {
+		"_postman_id": "75934ff7-3c7c-4129-8038-8329bac30289",
+		"name": "TXDXAI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34244820",
+		"_collection_link": "https://crimson-star-188955.postman.co/workspace/00820dcd-208c-462e-8894-2ec108bff78a/collection/34244820-75934ff7-3c7c-4129-8038-8329bac30289?action=share&source=collection_link&creator=34244820"
+	},
+	"item": [
+		{
+			"name": "Register Backend",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"prueba1\",\r\n  \"email\": \"prueba1@ejemplo.com\",\r\n  \"password\": \"secreto123\",\r\n  \"company\": { \"name\": \"MiEmpresa1\" }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CHAT SOPHIA",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcnVlYmExIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NDg2MDEzMDYsImV4cCI6MTc0ODY4NzcwNn0.CWftWzz_gXfeF3VkDbQ-W6k-FEUAET2VPiuIGlRheQY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"message\":\"Listame los agentes de Wazuh\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/chat",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Añadir credenciales a Empresa WAZUH",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcnVlYmExIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NDg1OTc2NjksImV4cCI6MTc0ODY4NDA2OX0.NVhtVy053p4Rxn16MX_Bq5KA3Ok28SQZa85TBkIoeEI",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"type\": \"WAZUH\",\r\n  \"managerIp\": \"192.168.1.198\",\r\n  \"apiPort\":  \"55000\",\r\n  \"apiUser\":  \"wazuh-wui\",\r\n  \"apiPassword\": \"lVTjEW6wmk8RG5G*28l9QYniiPU0.HS*\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/credentials",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"credentials"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Añadir credenciales a Empresa Meraki",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcnVlYmExIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NDg1OTc2NjksImV4cCI6MTc0ODY4NDA2OX0.NVhtVy053p4Rxn16MX_Bq5KA3Ok28SQZa85TBkIoeEI",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"type\": \"WAZUH\",\r\n  \"managerIp\": \"192.168.1.198\",\r\n  \"apiPort\":  \"55000\",\r\n  \"apiUser\":  \"wazuh-wui\",\r\n  \"apiPassword\": \"lVTjEW6wmk8RG5G*28l9QYniiPU0.HS*\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/credentials",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"credentials"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin crea Users con rol user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcnVlYmExIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NDg1OTc2NjksImV4cCI6MTc0ODY4NDA2OX0.NVhtVy053p4Rxn16MX_Bq5KA3Ok28SQZa85TBkIoeEI",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"usuario2\",\r\n  \"email\": \"user2@ejemplo.com\",\r\n  \"password\": \"secretoUser\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/users",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Solicitar history chat",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "/api/chat/history",
+					"path": [
+						"api",
+						"chat",
+						"history"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "LOGIN",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"prueba1\",\r\n  \"password\": \"secreto123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
 
 
 
