@@ -33,7 +33,7 @@
 ## Introducción
 
 ### Contexto ✏️  
-En el ámbito de la ciberseguridad, la gestión de credenciales, tickets e historiales de atención es clave para mantener la continuidad operativa y la trazabilidad. **TxDxAI** ofrece un backend unificado que integra múltiples herramientas (Meraki, Splunk, Wazuh) y un asistente conversacional potenciado por IA para agilizar respuestas y facilitar el seguimiento.
+En el ámbito de la ciberseguridad, la gestión de credenciales, tickets e historiales de atención es clave para mantener la continuidad operativa y la trazabilidad. **TxDxAI** ofrece un backend unificado que integra múltiples herramientas (Meraki, Wazuh ,Splunk, ...) y un asistente conversacional potenciado por IA para agilizar respuestas y facilitar el seguimiento.
 
 ### Objetivos del proyecto 🎯  
 1. **Autenticación y autorización** segura con JWT.  
@@ -158,14 +158,17 @@ El proyecto utiliza GitHub con flujo GitFlow:
 - Se integró un asistente conversacional con historial persistido.  
 - Se implementaron notificaciones asíncronas para eventos críticos.  
 - El manejo de errores y la seguridad cumplen con buenas prácticas en aplicaciones críticas.
+- A futuro se plantea implementar un segundo agente que ejecute accionesa partir de los tickets creados por sophia, tendra un conjunto de tools al igual que SOPHIA para poder ejecutar acciones automatizadas que resuelvan el ticket, si es que se clasifica el ticket como algo fuera de las capacidades del agente, el ticket se deriva recien al personal de TI para que lo resuelvan y vean a detalle, es ahi cuando se les notifica via correo(ya implementado).
+- Esto automatiza un poco mas la labor de soporte IT aligerando su carga debido a que un gran porcentaje de los tickets que se suelen generar en las empresas son de  provisioning.
 
 ---
 
 ## Detalle(Prueba):
 
--Dado que el lab de Wazuh que usamos de prueba tiene que estar en la red local para poder hacerle solicitudes, adjuntamos pruebas de como Sophia podia acceder a este recurso de Wazuh localmente, para un caso empresarial se haria uso de una VPN a traves del firewall de esa empresa restringiendo todas las direcciones excepto la del servidor AWS donde estara desplegada la aplicación, caso contrario y a diferencia de Wazuh, la solucion de Cisco Meraki al ser centralizada en cloud si es configurable en caunto a sus credenciales y se puede probar.
+- Dado que el lab de Wazuh que usamos de prueba tiene que estar en la red local para poder hacerle solicitudes, adjuntamos pruebas de como Sophia podia acceder a este recurso de Wazuh localmente, para un caso empresarial se haria uso de una VPN a traves del firewall de esa empresa restringiendo todas las direcciones excepto la del servidor AWS donde estara desplegada la aplicación, caso contrario y a diferencia de Wazuh, la solucion de Cisco Meraki al ser centralizada en cloud si es configurable en caunto a sus credenciales y se puede probar.
 ![image](https://github.com/user-attachments/assets/c73f39aa-392a-44ea-9687-4a3ec74b39fa)
-
+![Imagen de WhatsApp 2025-05-30 a las 23 44 04_439995fe](https://github.com/user-attachments/assets/3c535d92-15c7-41f0-af6d-2caab227fcbb)
+- La solucion de Meaki a la que le hacemos consultas coorresponde a una empresa llamada BVS (con oficina en San Isidro (en la que estan los equipos Cisco)) que nos cedio su ApiKey para hacer las pruebas del caso, manejar con precaución.
 
 
 
