@@ -7,7 +7,7 @@
 
 | Name                                  | GitHub User                                                           | Email                                                         |
 |---------------------------------------|-----------------------------------------------------------------------|---------------------------------------------------------------|
-| Mario Angel Urpay Enriquez              | [Chumayito](https://github.com/Chumayito) | [ronal.condor@utec.edu.pe](mailto:ronal.condor@utec.edu.pe)   |
+| Mario Angel Urpay Enriquez              | [Chumayito](https://github.com/Chumayito) | [mario.urpay@utec.edu.pe](mailto:mario.urpay@utec.edu.pe)   |
 | Steve | [steve-ricapa](https://github.com/steve-ricapa)                         | [steve.ricapa@utec.edu.pe](mailto:steve.ricapa@utec.edu.pe)   |
 | Adrian       | [Adrian-UTEC](https://github.com/Adrian-UTEC)                     | [adrian.poma@utec.edu.pe](mailto:adrian.poma@utec.edu.pe) |
 | Diego       | [datocher](https://github.com/datocher)                     | [diego.atoche@utec.edu.pe](mailto:diego.atoche@utec.edu.pe) |
