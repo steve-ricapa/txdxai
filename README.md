@@ -100,7 +100,8 @@ Esto genera ineficiencias, demoras en la atención y potenciales brechas de segu
 
 ## Modelo de Entidades
 
-![ER Diagram](docs/images/ERD.png)
+![Imagen de WhatsApp 2025-05-30 a las 16 31 29_7d36f2de](https://github.com/user-attachments/assets/06b709e1-6631-45fd-b89e-2644a3013617)
+
 
 | Entidad             | Tabla             | Atributos clave                                                                                         | Relaciones                                                                                                                                 |
 |---------------------|-------------------|---------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
