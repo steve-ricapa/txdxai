@@ -160,6 +160,13 @@ El proyecto utiliza GitHub con flujo GitFlow:
 
 ---
 
+## Detalle(Prueba):
+
+-Dado que el lab de Wazuh que usamos de prueba tiene que estar en la red local para poder hacerle solicitudes, adjuntamos pruebas de como Sophia podia acceder a este recurso de Wazuh localmente, para un caso empresarial se haria uso de una VPN a traves del firewall de esa empresa restringiendo todas las direcciones excepto la del servidor AWS donde estara desplegada la aplicación, caso contrario y a diferencia de Wazuh, la solucion de Cisco Meraki al ser centralizada en cloud si es configurable en caunto a sus credenciales y se puede probar.
+![image](https://github.com/user-attachments/assets/c73f39aa-392a-44ea-9687-4a3ec74b39fa)
+
+
+
 
 
 ## Apéndice
