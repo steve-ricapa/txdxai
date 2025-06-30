@@ -16,6 +16,11 @@ public class AuthController {
 
     private final AuthenticationService authService;
 
+    @GetMapping("/hello")
+    public String hello() {
+        return "La nube funciona!";
+    }
+
     @PostMapping("/register")
     public ResponseEntity<JwtAuthResponse> initialRegister(
             @Validated @RequestBody InitialRegisterRequest request) {
