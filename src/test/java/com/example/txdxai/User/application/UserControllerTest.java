@@ -1,5 +1,6 @@
 package com.example.txdxai.User.application;
 
+import com.example.txdxai.auth.config.JwtService;
 import com.example.txdxai.core.model.Company;
 import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.model.Role;
@@ -12,6 +13,7 @@ import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
