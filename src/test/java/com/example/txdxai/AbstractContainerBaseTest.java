@@ -10,21 +10,21 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @DataJpaTest
 @Testcontainers
 public abstract class AbstractContainerBaseTest {
-    private static final PostgreSQLContainer<?> postgresqlContainer;
-
-    static {
-        postgresqlContainer = new PostgreSQLContainer<>("postgres:latest")
-                .withDatabaseName("TxdxaiTestDb")
-                .withUsername("Txdxai")
-                .withPassword("Txdxai");
-
-        postgresqlContainer.start();
-    }
-
-    @DynamicPropertySource
-    static void overrideTestProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresqlContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresqlContainer::getUsername);
-        registry.add("spring.datasource.password", postgresqlContainer::getPassword);
-    }
+//    private static final PostgreSQLContainer<?> postgresqlContainer;
+//
+//    static {
+//        postgresqlContainer = new PostgreSQLContainer<>("postgres:latest")
+//                .withDatabaseName("TxdxaiTestDb")
+//                .withUsername("Txdxai")
+//                .withPassword("Txdxai");
+//
+//        postgresqlContainer.start();
+//    }
+//
+//    @DynamicPropertySource
+//    static void overrideTestProperties(DynamicPropertyRegistry registry) {
+//        registry.add("spring.datasource.url", postgresqlContainer::getJdbcUrl);
+//        registry.add("spring.datasource.username", postgresqlContainer::getUsername);
+//        registry.add("spring.datasource.password", postgresqlContainer::getPassword);
+//    }
 }
