@@ -14,6 +14,7 @@ public class TicketResponse {
     private String subject;
     private String description;
     private String status;
+    private String createdAt;
 
     public TicketResponse(Long id, String subject, String status) {
         this.id = id;

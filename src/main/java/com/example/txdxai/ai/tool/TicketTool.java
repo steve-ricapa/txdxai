@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,7 +68,9 @@ public class TicketTool {
                 user.getId(),
                 saved.getSubject(),
                 saved.getDescription(),
-                saved.getStatus().name()
+                saved.getStatus().name(),
+                saved.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
         );
     }
 
@@ -98,7 +101,8 @@ public class TicketTool {
                 ticket.getUser().getId(),
                 ticket.getSubject(),
                 ticket.getDescription(),
-                ticket.getStatus().name()
+                ticket.getStatus().name(),
+                ticket.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         );
     }
 }
