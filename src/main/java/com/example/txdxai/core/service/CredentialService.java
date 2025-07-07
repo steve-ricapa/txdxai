@@ -51,7 +51,7 @@ public class CredentialService {
                     );
                 }
             }
-            case WAZUH, SPLUNK -> {
+            case NESSUS, WAZUH, SPLUNK -> {
                 if (req.getManagerIp() == null
                         || req.getApiPort() == null
                         || req.getApiUser() == null

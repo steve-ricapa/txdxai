@@ -17,6 +17,7 @@ public enum CredentialType {
     SENTRY,
     JIRA,
     CONFLUENCE,
+    NESSUS,
     SLACK,
     TEAMS
 }
