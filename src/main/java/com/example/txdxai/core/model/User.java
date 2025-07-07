@@ -47,7 +47,7 @@ public class User implements UserDetails {
         this.createdAt = LocalDateTime.now();
     }
 
-    // Métodos de UserDetails
+    // Métodos de userdetails
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
