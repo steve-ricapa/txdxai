@@ -8,6 +8,7 @@ import com.example.txdxai.core.model.User;
 import com.example.txdxai.core.repository.CredentialRepository;
 import com.example.txdxai.core.repository.UserRepository;
 import com.example.txdxai.rest.dto.CreateCredentialRequest;
+import com.example.txdxai.rest.dto.CredentialDetailDto;
 import com.example.txdxai.rest.exception.ResourceConflictException;
 import com.example.txdxai.rest.exception.ResourceNotFoundException;
 import com.example.txdxai.rest.exception.UnauthorizeOperationException;
@@ -16,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.jasypt.encryption.StringEncryptor;
 
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @Service
@@ -235,4 +238,59 @@ public class CredentialService {
 
         return encryptor.decrypt(credential.getAPI_PASSWORD_ENCRYPTED());
     }
+
+    @Transactional
+    public List<Credential> getAllCredentials(String adminUsername) {
+        // Verificar que es un admin
+        User admin = userRepository.findByUsername(adminUsername)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Admin no encontrado: " + adminUsername));
+
+        if (admin.getRole() != Role.ADMIN) {
+            throw new UnauthorizeOperationException("Solo ADMIN puede listar credenciales");
+        }
+
+        // Obtener solo las credenciales de la compañía del admin
+        return credentialRepository.findByCompanyId(admin.getCompany().getId());
+    }
+
+    @Transactional
+    public CredentialDetailDto getCredentialDetails(String adminUsername, Long credentialId) {
+        // 1) Verificar admin
+        User admin = userRepository.findByUsername(adminUsername)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Admin no encontrado: " + adminUsername)
+                );
+
+        if (admin.getRole() != Role.ADMIN) {
+            throw new UnauthorizeOperationException("Solo ADMIN puede acceder a las credenciales");
+        }
+
+        // 2) Obtener credencial
+        Credential credential = credentialRepository.findById(credentialId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Credencial no encontrada: " + credentialId)
+                );
+
+        // 3) Verificar pertenencia a la misma compañía
+        if (!credential.getCompany().getId().equals(admin.getCompany().getId())) {
+            throw new UnauthorizeOperationException("No tienes permiso para esta credencial");
+        }
+
+        // 4) Construir DTO con valores descifrados
+        CredentialDetailDto dto = new CredentialDetailDto(credential.getId(), credential.getType());
+
+        if (credential.getType() == CredentialType.MERAKI) {
+            dto.setApiKey(encryptor.decrypt(credential.getApiKeyEncrypted()));
+        } else {
+            // WAZUH, SPLUNK
+            dto.setManagerIp(encryptor.decrypt(credential.getMANAGER_IP()));
+            dto.setApiPort(encryptor.decrypt(credential.getAPI_PORT()));
+            dto.setApiUser(encryptor.decrypt(credential.getAPI_USER()));
+            dto.setApiPassword(encryptor.decrypt(credential.getAPI_PASSWORD_ENCRYPTED()));
+        }
+
+        return dto;
+    }
+
 }
