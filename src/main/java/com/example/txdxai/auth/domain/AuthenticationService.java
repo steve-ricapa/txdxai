@@ -13,6 +13,7 @@ import com.example.txdxai.core.repository.UserRepository;
 import com.example.txdxai.rest.exception.ResourceNotFoundException;
 import com.example.txdxai.rest.exception.UnauthorizeOperationException;
 import com.example.txdxai.rest.exception.UserAlreadyExistsException;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,7 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import java.time.LocalDateTime;
 
 @Service
@@ -37,6 +38,7 @@ public class AuthenticationService {
     /**
      * Registro inicial del primer Admin: crea la compañía y asigna ROLE_ADMIN
      */
+    @WithSpan("auth.registerFirstAdmin")
     public JwtAuthResponse registerFirstAdmin(InitialRegisterRequest request) {
         // Crear o reusar la compañía indicada
         Company company = companyRepository
@@ -67,6 +69,7 @@ public class AuthenticationService {
     /**
      * Autenticación de usuario existente: LOGIN
      */
+    @WithSpan("auth.login")
     public JwtAuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -87,6 +90,7 @@ public class AuthenticationService {
     /**
      * Creación de un nuevo User por un Admin autenticado
      */
+    @WithSpan("auth.createUserAsAdmin")
     public JwtAuthResponse createUserAsAdmin(CreateUserRequest request) {
         // Verificar que el llamador sea un Admin
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

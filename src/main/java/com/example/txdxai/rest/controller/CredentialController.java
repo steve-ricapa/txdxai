@@ -5,6 +5,7 @@ import com.example.txdxai.core.service.CredentialService;
 import com.example.txdxai.rest.dto.CreateCredentialRequest;
 import com.example.txdxai.rest.dto.CredentialDetailDto;
 import com.example.txdxai.rest.dto.CredentialDto;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ public class CredentialController {
 
     private final CredentialService credentialService;
 
+    @WithSpan("credential.add")
     @PostMapping
     public ResponseEntity<CredentialDto> addCredential(
             @Valid @RequestBody CreateCredentialRequest req,
@@ -38,7 +40,7 @@ public class CredentialController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
-
+    @WithSpan("credential.getCredentialDetails")
     @GetMapping("/{id}")
     public ResponseEntity<CredentialDetailDto> getCredentialDetails(
             @PathVariable Long id,
@@ -49,6 +51,7 @@ public class CredentialController {
         return ResponseEntity.ok(dto);
     }
 
+    @WithSpan("credential.list")
     @GetMapping
     public ResponseEntity<List<CredentialDto>> getAllCredentials(Authentication auth) {
         // Este metodo se mantiene igual, solo devuelve la lista básica

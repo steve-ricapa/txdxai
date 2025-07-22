@@ -10,12 +10,14 @@ import com.example.txdxai.core.service.TicketService;
 import com.example.txdxai.core.service.UserService;
 import com.example.txdxai.rest.dto.TicketRequest;
 import com.example.txdxai.rest.dto.TicketResponse;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 
 
 import java.net.URI;
@@ -50,6 +52,7 @@ public class TicketController {
                 .toList();
     }
 
+    @WithSpan ("ticket.create")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<TicketResponse> create(
@@ -79,6 +82,7 @@ public class TicketController {
                 .body(responseDto);
     }
 
+    @WithSpan("ticket.getById")
     @GetMapping("/{id}")
     public ResponseEntity<TicketResponse> getById(@PathVariable Long id) {
         // findById lanza ResourceNotFoundException si no existe
@@ -88,6 +92,7 @@ public class TicketController {
 
     }
 
+    @WithSpan("ticket.updateStatus")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<TicketResponse> updateStatus(
@@ -104,7 +109,7 @@ public class TicketController {
         Ticket updated = ticketService.updateStatus(id, status);
         return ResponseEntity.ok(modelMapper.map(updated, TicketResponse.class));
     }
-
+    @WithSpan("ticket.delete")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         ticketService.delete(id);

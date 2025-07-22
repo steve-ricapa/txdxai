@@ -3,6 +3,7 @@ package com.example.txdxai.rest.controller;
 import com.example.txdxai.core.model.Company;
 import com.example.txdxai.core.service.CompanyService;
 import com.example.txdxai.rest.dto.CompanyDto;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ public class CompanyController {
     private final CompanyService companyService;
     private final ModelMapper modelMapper;
 
+    @WithSpan("company.listAll")
     @GetMapping
     public List<CompanyDto> listAll() {
         return companyService.findAll().stream()
@@ -26,6 +28,7 @@ public class CompanyController {
                 .toList();
     }
 
+    @WithSpan("company.create")
     @PostMapping
     public ResponseEntity<CompanyDto> create(@RequestBody CompanyDto dto) {
         Company entity = modelMapper.map(dto, Company.class);
@@ -36,6 +39,7 @@ public class CompanyController {
                 .body(responseDto);
     }
 
+    @WithSpan("company.getById")
     @GetMapping("/{id}")
     public ResponseEntity<CompanyDto> getById(@PathVariable Long id) {
         return companyService.findById(id)
@@ -43,7 +47,7 @@ public class CompanyController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
+    @WithSpan("company.update")
     @PutMapping("/{id}")
     public ResponseEntity<CompanyDto> update(
             @PathVariable Long id,
@@ -54,7 +58,7 @@ public class CompanyController {
         Company updated = companyService.update(id, entity);
         return ResponseEntity.ok(modelMapper.map(updated, CompanyDto.class));
     }
-
+    @WithSpan("company.delete")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         companyService.delete(id);

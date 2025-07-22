@@ -13,6 +13,7 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.service.Result;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,6 +36,7 @@ public class ChatController {
     private final ChatMemoryService chatMemoryService;
     private final UserService userService;
 
+    @WithSpan("chat.session")
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request,

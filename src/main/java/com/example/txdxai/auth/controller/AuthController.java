@@ -4,6 +4,7 @@ import com.example.txdxai.auth.domain.AuthenticationService;
 import com.example.txdxai.auth.dto.InitialRegisterRequest;
 import com.example.txdxai.auth.dto.JwtAuthResponse;
 import com.example.txdxai.auth.dto.LoginRequest;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +22,7 @@ public class AuthController {
         return "La nube funciona!";
     }
 
+    @WithSpan("auth.register")
     @PostMapping("/register")
     public ResponseEntity<JwtAuthResponse> initialRegister(
             @Validated @RequestBody InitialRegisterRequest request) {
@@ -28,6 +30,7 @@ public class AuthController {
         return ResponseEntity.ok(resp);
     }
 
+    @WithSpan("auth.login")
     @PostMapping("/login")
     public ResponseEntity<JwtAuthResponse> login(
             @Validated @RequestBody LoginRequest req) {
