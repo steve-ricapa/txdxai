@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -40,4 +41,19 @@ public class Company {
     public Company(Long id) {
         this.id = id;
     }
+
+    //añadimos los nuvos campos de la empresa
+
+    @Column(name = "subscription_end_date")
+    private LocalDate subscriptionEndDate;
+
+    @Column(name = "token_limit")
+    private Integer tokenLimit;
+
+    @Column(name = "tokens_used")
+    private Integer tokensUsed;
+
+    @Column(name = "subscription_plan", length = 50)
+    private String subscriptionPlan;
+
 }

@@ -9,11 +9,13 @@ import com.example.txdxai.core.service.UserService;
 import com.example.txdxai.rest.dto.ChatMemoryEntryDto;
 import com.example.txdxai.rest.dto.ChatRequest;
 import com.example.txdxai.rest.dto.ChatResponse;
+import com.example.txdxai.rest.exception.LimitExceededException;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -121,5 +123,10 @@ public class ChatController {
                 .toList();
 
         return ResponseEntity.ok(dtos);
+    }
+
+    @ExceptionHandler(LimitExceededException.class)
+    public ResponseEntity<String> handleLimit(LimitExceededException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 }

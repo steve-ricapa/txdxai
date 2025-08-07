@@ -2,6 +2,7 @@ package com.example.txdxai.core.service;
 
 import com.example.txdxai.core.model.Company;
 import com.example.txdxai.core.repository.CompanyRepository;
+import com.example.txdxai.rest.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,4 +37,17 @@ public class CompanyService {
     public void delete(Long id) {
         repo.deleteById(id);
     }
+
+    public void registerTokenUsage(Long companyId, int tokensToAdd) {
+        Company company = repo.findById(companyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada con ID: " + companyId));
+
+        if (company.getTokensUsed() == null) {
+            company.setTokensUsed(0);
+        }
+
+        company.setTokensUsed(company.getTokensUsed() + tokensToAdd);
+        repo.save(company);
+    }
+
 }

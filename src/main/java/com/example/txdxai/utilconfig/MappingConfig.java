@@ -8,6 +8,9 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.example.txdxai.core.model.Company;
+import com.example.txdxai.rest.dto.CompanyDto;
+
 
 @Configuration
 public class MappingConfig {
@@ -45,6 +48,13 @@ public class MappingConfig {
             }
             return user;
         };
+
+        // ✅ Company → CompanyDto
+        modelMapper.createTypeMap(Company.class, CompanyDto.class);
+
+        // ✅ CompanyDto → Company
+        modelMapper.createTypeMap(CompanyDto.class, Company.class);
+
 
         modelMapper.createTypeMap(User.class, UserDto.class).setConverter(userToUserDto);
         modelMapper.createTypeMap(UserDto.class, User.class).setConverter(userDtoToUser);

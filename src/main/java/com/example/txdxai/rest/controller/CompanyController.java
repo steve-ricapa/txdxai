@@ -3,6 +3,7 @@ package com.example.txdxai.rest.controller;
 import com.example.txdxai.core.model.Company;
 import com.example.txdxai.core.service.CompanyService;
 import com.example.txdxai.rest.dto.CompanyDto;
+import com.example.txdxai.rest.dto.TokenUsageDto;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
@@ -60,4 +61,12 @@ public class CompanyController {
         companyService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/use-tokens")
+    public ResponseEntity<Void> registerTokenUsage(@RequestBody TokenUsageDto dto) {
+        companyService.registerTokenUsage(dto.getCompanyId(), dto.getTokensUsed());
+
+        return ResponseEntity.ok().build();
+    }
+
 }

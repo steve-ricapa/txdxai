@@ -46,13 +46,12 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        // REGLA ESPECÍFICA: solo ADMIN puede acceder al historial
-                        .requestMatchers(HttpMethod.GET, "/api/chat/history").hasRole("ADMIN")
-                        // resto de endpoints de usuarios
+                        .requestMatchers(HttpMethod.POST, "/api/companies").permitAll() // 👈 PERMITIR POST
+                        .requestMatchers(HttpMethod.GET, "/api/companies/**").permitAll() // opcional si consultas sin token
                         .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "USER")
-                        // cualquier otro requiere autenticación
                         .anyRequest().authenticated()
                 )
+
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
