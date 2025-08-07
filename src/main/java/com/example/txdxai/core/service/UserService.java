@@ -63,6 +63,7 @@ public class UserService {
         // Actualizar campos
         existing.setUsername(updated.getUsername());
         existing.setEmail(updated.getEmail());
+        existing.setRole(updated.getRole());
         // Si quisieras permitir cambiar rol o password, agrégalos aquí:
         // existing.setRole(updated.getRole());
         // existing.setPasswordHash(updated.getPasswordHash());
