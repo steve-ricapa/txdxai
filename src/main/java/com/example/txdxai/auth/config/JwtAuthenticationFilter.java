@@ -1,4 +1,5 @@
 package com.example.txdxai.auth.config;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,25 +25,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Excluir rutas públicas
-        if (path.startsWith("/auth")) {
+        // Rutas públicas: auth y webhook Stripe
+        if (path.startsWith("/auth")
+                || path.equals("/api/stripe/webhook")
+                || path.equals("/api/stripe/ping")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String authHeader = request.getHeader("Authorization");
-
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Falta o formato incorrecto del token");
             return;
         }
 
-        String token = authHeader.substring(7); // quitar "Bearer "
+        String token = authHeader.substring(7);
         String userEmail = jwtService.extractUsername(token);
 
         if (StringUtils.hasText(userEmail)) {
             try {
-                jwtService.validateToken(token); // ← este método ya setea el contexto
+                jwtService.validateToken(token);
             } catch (RuntimeException e) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Token inválido o expirado");
                 return;

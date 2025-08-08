@@ -1,7 +1,6 @@
 package com.example.txdxai.auth.config;
 
 import com.example.txdxai.auth.domain.CustomUserDetailsService;
-import com.example.txdxai.core.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +14,8 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -46,12 +45,22 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/companies").permitAll() // 👈 PERMITIR POST
-                        .requestMatchers(HttpMethod.GET, "/api/companies/**").permitAll() // opcional si consultas sin token
-                        .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "USER")
+
+                        // Stripe webhook y ping públicos
+                        .requestMatchers(HttpMethod.POST, "/api/stripe/webhook").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/stripe/ping").permitAll()
+
+                        // payments: requiere token (puedes abrirlo si quieres probar sin login)
+                        .requestMatchers("/api/payments/**").authenticated()
+
+                        // companies abierto para crear durante registro
+                        .requestMatchers(HttpMethod.POST, "/api/companies").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/companies/**").permitAll()
+
+                        // resto
+                        .requestMatchers("/api/users/**").hasAnyRole("ADMIN","USER")
                         .anyRequest().authenticated()
                 )
-
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -87,12 +96,11 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Permite cualquier origen, incluso con credenciales
         config.setAllowedOriginPatterns(List.of("*"));
-        // Otras opciones “wildcard” para métodos y headers
         config.setAllowedMethods(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -101,5 +109,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-
 }

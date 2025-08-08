@@ -1,55 +1,90 @@
 package com.example.txdxai.rest.controller;
 
 import com.example.txdxai.core.service.CompanyService;
-import com.example.txdxai.core.model.Company;
-import com.stripe.model.checkout.Session;
 import com.stripe.model.Event;
+import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.Map;
-
+@Slf4j
 @RestController
-@RequestMapping("/api/stripe/webhook")
+@RequestMapping("/api/stripe")
+@RequiredArgsConstructor
 public class StripeWebhookController {
 
     private final CompanyService companyService;
-    private final String endpointSecret = "whsec_..."; // tu webhook secret de Stripe
 
-    public StripeWebhookController(CompanyService companyService) {
-        this.companyService = companyService;
+    @Value("${stripe.webhook-secret}")
+    private String endpointSecret;
+
+    // Para verificar rápidamente que este controller se está llamando
+    @GetMapping("/ping")
+    public ResponseEntity<String> ping() {
+        log.info("[Stripe] PING recibido");
+        return ResponseEntity.ok("pong");
     }
 
-    @PostMapping
+    @PostMapping(
+            value = "/webhook",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.TEXT_PLAIN_VALUE
+    )
     public ResponseEntity<String> handleStripeEvent(
             @RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String sigHeader) {
+            @RequestHeader(name = "Stripe-Signature", required = false) String sigHeader) {
+
+        if (sigHeader == null) {
+            log.warn("[Stripe] Falta cabecera Stripe-Signature");
+            return ResponseEntity.badRequest().body("Missing Stripe-Signature");
+        }
 
         Event event;
         try {
             event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
         } catch (Exception e) {
+            log.warn("[Stripe] Firma inválida del webhook: {}", e.getMessage());
             return ResponseEntity.badRequest().body("Invalid signature");
         }
 
+        log.info("[Stripe] Evento recibido: {}", event.getType());
+
         if ("checkout.session.completed".equals(event.getType())) {
-            Session session = (Session) event.getDataObjectDeserializer().getObject().get();
+            var opt = event.getDataObjectDeserializer().getObject();
+            if (opt.isEmpty()) {
+                log.warn("[Stripe] checkout.session.completed sin objeto Session (deserializer vacío)");
+                return ResponseEntity.ok("No session object");
+            }
 
-            // Buscar a qué empresa le corresponde este session_id (esto depende de cómo asocies empresa ↔ sesión)
-            // Ejemplo:
-            String companyId = session.getClientReferenceId();
-            Company company = companyService.findById(Long.parseLong(companyId)).orElseThrow();
+            Session session = (Session) opt.get();
 
-            company.setSubscriptionEndDate(LocalDate.now().plusMonths(6));
-            company.setTokensUsed(0);
-            company.setSubscriptionPlan("standard"); // o "enterprise"
-            company.setTokenLimit("standard".equals(company.getSubscriptionPlan()) ? 100_000 : 1_000_000);
+            String sessionId = session.getId();
+            String companyIdStr = session.getClientReferenceId(); // lo seteamos cuando creamos la sesión
+            String plan = session.getMetadata() != null ? session.getMetadata().get("plan") : null;
 
-            companyService.update(company.getId(), company);
+            log.info("[Stripe] sessionId={}, clientReferenceId={}, metadata.plan={}",
+                    sessionId, companyIdStr, plan);
+
+            if (companyIdStr == null) {
+                log.error("[Stripe] Falta client_reference_id para session {}", sessionId);
+                return ResponseEntity.badRequest().body("Missing client_reference_id");
+            }
+
+            try {
+                Long companyId = Long.valueOf(companyIdStr);
+                companyService.activateSubscription(companyId, plan);
+                log.info("[Stripe] Suscripción ACTIVADA: companyId={}, plan={}", companyId, plan);
+            } catch (Exception e) {
+                log.error("[Stripe] Error actualizando compañía para la sesión {}: {}", sessionId, e.getMessage(), e);
+                return ResponseEntity.internalServerError().body("Update failed");
+            }
         }
 
-        return ResponseEntity.ok("Evento recibido");
+        // Acepta otros eventos sin hacer nada
+        return ResponseEntity.ok("OK");
     }
 }
